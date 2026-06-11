@@ -1,5 +1,55 @@
 # phase-1-zeek-lab
-<h1>Home Network Threat Detection Lab with Zeek, Wireshark, and Dual Mac Minis</h1>
+
+## Dual Mac Mini Zeek Lab
+
+**Goal:** Get hands-on experience with network traffic analysis using real hardware.
+
+```
+┌─────────────────────────────────────────┐
+│              HOME NETWORK               │
+│                                         │
+│  ┌──────────────────┐                   │
+│  │  2014 Mac Mini   │                   │
+│  │  (Primary Node)  │                   │
+│  │                  │                   │
+│  │  • Zeek          │                   │
+│  │  • Wireshark     │                   │
+│  │  • PCAP analysis │                   │
+│  └──────────────────┘                   │
+│                                         │
+│  ┌──────────────────┐                   │
+│  │  2012 Mac Mini   │                   │
+│  │  (Secondary)     │                   │
+│  │                  │                   │
+│  │  • Zeek          │                   │
+│  │  • Test/logging  │                   │
+│  └──────────────────┘                   │
+│                                         │
+│  No centralized logging yet.            │
+│  Logs lived on each machine separately. │
+└─────────────────────────────────────────┘
+```
+
+### What I Did
+
+Both Mac Minis had their spinning hard drives replaced with SSDs before OS installation. Both were clean-installed with Ubuntu 22.04 LTS, and Zeek was installed on each device.
+
+The primary workflow was analyzing ICS/SCADA PCAP samples representing realistic cyberattack scenarios, then using Zeek to generate structured logs and Wireshark to validate packet-level behavior. This gave me:
+
+- Hands-on familiarity with Zeek's log structure (conn.log, dns.log, weird.log, etc.)
+- Understanding of how Zeek and Wireshark complement each other: Zeek for metadata and event detection, Wireshark for packet-level inspection
+- Practice with Linux CLI fundamentals: network interface configuration, static IP assignment via MAC, navigating and editing config files
+- Experience analyzing logs from realistic attack scenarios rather than synthetic lab data
+
+### What This Phase Revealed
+
+The two-machine setup worked, but analyzing logs meant SSH-ing into each machine and grepping through files manually. There was no unified view, no persistence, and no way to correlate events across sources. That limitation was the direct motivation for Phase 2. You can find the original phase 1 write-up below:
+
+---
+
+---
+
+<h1>Home Network Threat Detection Lab with Zeek, Wireshark, and Dual Mac Minis</h1> submitted 2025-08-18
 
 <h2>Summary</h2>
 
