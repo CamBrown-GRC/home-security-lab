@@ -1,65 +1,94 @@
-# threat-detection-lab-dual-mac-minis
-<h1>Home Network Threat Detection Lab with Zeek, Wireshark, and Dual Mac Minis</h1>
+# Home Security Monitoring Lab
 
-<h2>Summary</h2>
+A living documentation of my personal security monitoring infrastructure that I built incrementally over the past year as a hands-on SOC engineering environment using real hardware and real network traffic.
 
-This project documents the setup and configuration of a two-device home cybersecurity lab using a 2012 and 2014 Mac Mini. The goal was to build a functional Zeek and Wireshark logging pipeline capable of analyzing and visualizing network traffic from industrial control system (ICS) PCAPs and simulated malicious data. The project emphasizes hands-on network monitoring, log analysis, and security learning.
+This isn't a tutorial. Rather, it's a record of decisions made, problems solved, and architecture that evolved as my skills and goals grew. The lab currently captures live telemetry from firewall, DNS, network flow, and camera motion events across a multi-machine pipeline and aggregates everything into a single queryable interface.
 
-<h2>Project Objectives</h2>
+---
 
-* Practice Linux system administration and network interface configuration
-* Install and configure Zeek for traffic inspection
-* Use Wireshark for packet-level inspection and validation
-* Review data from sample attack files (PCAPs)
-* Understand log structures and the value of enriched data visibility
+## Table of Contents
+- [Why I Built This](#why-i-built-this)
+- [Current Architecture](#current-architecture)
+- [Skills Demonstrated](#skills-demonstrated)
+- [Hardware Inventory](#hardware-inventory)
+- [Phase 1 — Dual Mac Mini Zeek Lab](docs/phase-1-zeek-lab.md)
+- [Phase 2 — Centralized Log Aggregation Pipeline](docs/phase-2-log-pipeline.md)
+- [Phase 3 — Detection Engineering & Dashboards (In Progress)](docs/phase-3-detection-engineering.md)
 
-<h3>Hardware Used</h3>
+## Why I Built This
 
-Mac Mini (2014)
-* Purpose: Primary analysis node
-* OS: Ubuntu 22.04 LTS
-* Network Role: Hosts Zeek and Wireshark; used for parsing, inspecting, and analyzing network logs
-* Upgrades: SSD replacement using iFixit teardown instructions [iFixit Mac Mini 2014 Guide](https://www.ifixit.com/Guide/Mac+mini+Late+2014+Hard+Drive+Replacement/32815)
+Most home lab guides tell you to spin up a VM, run some sample PCAPs, and call it done. I wanted to do something different: a persistent monitoring environment capturing real traffic from my actual network, with a log pipeline I had to design, deploy, and troubleshoot myself. This had the added effect of contributing to my home network hardening goals.
 
-Mac Mini (2012)
-* Purpose: Secondary processing node
-* OS: Ubuntu 22.04 LTS (clean install)
-* Network Role: Separate testing and log-shipping node
-* Upgrades: SSD replacement using iFixit teardown instructions [iFixit Mac Mini 2012 Guide](https://www.ifixit.com/Guide/Mac+mini+Late+2012+Hard+Drive+Replacement/11716)
+The longer goal is to build the practical skills that translate to SOC and detection engineering work. This includes not just building familiarity with tools, but understanding the full stack from log generation to ingestion to query and visualization. The architecture has changed significantly as I've learned what works and what doesn't.
 
-<h2>Key Configuration Steps</h2>
 
-<h3>Network Configuration</h3>
+## Current Architecture
 
-* Created static DHCP reservations for each Mac Mini on home router 
-* Used `ip link` to find network adapter names and MAC addresses
-* Practiced using the Linux terminal to move around, change directories, and open config files
-* Installed Zeek from source on both machines and added it to the system path
+I set up three dedicated nodes, each with a specific role. All logs flow to a central Loki instance and are queryable through Grafana.
 
-<h3>Zeek</h3>
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        HOME NETWORK                             │
+│                                                                 │
+│  ┌──────────────────┐      ┌──────────────────┐                │
+│  │  2012 Mac Mini   │      │  Raspberry Pi    │                │
+│  │  (Zeek Sensor)   │      │  (DNS + Logging) │                │
+│  │                  │      │                  │                │
+│  │  • Zeek NSM      │      │  • Pi-hole DNS   │                │
+│  │  • conn.log      │      │  • DNS query log │                │
+│  │  • dns.log       │      │  • Promtail      │                │
+│  │  • weird.log     │      │    (binary)      │                │
+│  │  • Promtail      │      └────────┬─────────┘                │
+│  │    (Docker)      │               │                          │
+│  └────────┬─────────┘               │ logs over network        │
+│           │                         │                          │
+│           └──────────┬──────────────┘                          │
+│                      │                                         │
+│                      ▼                                         │
+│         ┌────────────────────────┐                             │
+│         │   2014 Mac Mini        │                             │
+│         │   (Central Node)       │                             │
+│         │                        │                             │
+│         │  • Loki  (log storage) │                             │
+│         │  • Grafana  (UI/query) │                             │
+│         │  • Promtail (Docker)   │                             │
+│         │  • ufw logs            │                             │
+│         │  • Frigate NVR        │                             │
+│         │  • Plex, Nextcloud,    │                             │
+│         │    and other services  │                             │
+│         └────────────────────────┘                             │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
 
-* Installed Zeek on both machines and added it to the system path
-* Created the correct folder structure for logs
-* Ran Zeek on ICS/SCADA PCAP samples which simulate real cyberattacks: [PCAPs here](https://github.com/tjcruz-dei/ICS_PCAPS/releases)
-* Got log files like `conn.log`, `dns.log`, and `weird.log`
+### Log Sources Currently in Pipeline
 
-<h3>Wireshark</h3>
+| Source  | Machine       | Log Type                                                                        | Notes                                                   |
+| ------- | ------------- | ------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| Zeek    | 2012 Mac Mini | conn.log, dns.log, weird.log, http.log, ssl.log, ssh.log, notice.log, files.log | Network flow + protocol analysis                        |
+| Pi-hole | Raspberry Pi  | DNS query log                                                                   | Network-wide DNS visibility                             |
+| ufw     | 2014 Mac Mini | Firewall allow/block events                                                     | Host-based firewall telemetry                           |
+| Frigate | 2014 Mac Mini | Motion/detection events                                                         | Object detection and camera activity via container logs |
 
-* Installed Wireshark to validate packet-level activity seen in the PCAPs
-* Used Wireshark in parallel with Zeek logs to trace and correlate packet behavior
-* Learned how to trace packets and understand what’s going on in the background
 
-<h2>Skills Gained</h2>
+## Skills Demonstrated
 
-* Static IP assignment via MAC address
-* Navigating Linux CLI tools for network diagnostics
-* Understanding Zeek’s modular log structure (conn.log, dns.log, weird.log, etc.)
-* Analyzing logs from PCAPs representing realistic ICS DDoS scenarios
-* Combining Zeek (metadata/event detection) with Wireshark (packet visibility) for multi-layered analysis
+| Domain                      | Specific Skills                                                                                 |
+| --------------------------- | ----------------------------------------------------------------------------------------------- |
+| Network Security Monitoring | Zeek deployment and log analysis, passive traffic capture, protocol inspection                  |
+| Log Engineering             | Multi-source log aggregation, Promtail configuration, label design for cross-source correlation |
+| SIEM / Query                | LogQL query writing, Loki data source configuration, Grafana dashboard development              |
+| Linux Administration        | Ubuntu server configuration, systemd service management, Docker Compose orchestration           |
+| Security Architecture       | Network segmentation, IoT isolation, DNS filtering, firewall rule management                    |
+| Documentation               | Architecture diagramming, decision documentation, reproducible configuration                    |
 
-<h2>Next Steps</h2>
 
-* Introduce Suricata or Snort for real-time traffic inspection
-* Connect a Raspberry Pi as a test device to generate more traffic
-* Build dashboards or use other tools to visualize the logs
-* Write custom Zeek scripts to trigger detections
+## Hardware Inventory
+
+| Device             | Role                                             | OS               | Notes                                   |
+| ------------------ | ------------------------------------------------ | ---------------- | --------------------------------------- |
+| Mac Mini (2014)    | Central node — Loki, Grafana, Promtail, services | Ubuntu 22.04 LTS | SSD upgrade from original HDD           |
+| Mac Mini (2012)    | Zeek sensor                                      | Ubuntu 22.04 LTS | SSD upgrade from original HDD           |
+| Raspberry Pi       | Pi-hole DNS + Promtail log shipping              | Raspberry Pi OS  | Promtail runs as native binary  |
+| TP-Link Deco       | Mesh network, IoT segmentation                   | —                | ISP modem Wi-Fi disabled                |
+| ISP Router | ISP modem (bridge mode)                          | —                | Wi-Fi disabled, Deco handles routing    |
