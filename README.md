@@ -2,7 +2,7 @@
 
 A living documentation of my personal security monitoring infrastructure that I built incrementally over the past year as a hands-on SOC engineering environment using real hardware and real network traffic.
 
-This isn't a tutorial. Rather, it's a record of decisions made, problems solved, and architecture that evolved as my skills and goals grew. The lab currently captures live telemetry from firewall, DNS, network flow, and camera motion events across a multi-machine pipeline and aggregates everything into a single queryable interface.
+The lab currently captures live telemetry from firewall, DNS, network flow, and camera motion events across a multi-machine pipeline and aggregates everything into a single queryable interface.
 
 ---
 
