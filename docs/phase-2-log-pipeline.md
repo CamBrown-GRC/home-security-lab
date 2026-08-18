@@ -1,5 +1,3 @@
-# phase-2-log-pipeline
-
 # Centralized Log Aggregation Pipeline
 
 **Goal:** Build a log ingestion pipeline that aggregates telemetry from multiple sources into a single queryable interface.
