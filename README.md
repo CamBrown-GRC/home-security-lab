@@ -13,7 +13,7 @@ The lab currently captures live telemetry from firewall, DNS, network flow, and 
 - [Hardware Inventory](#hardware-inventory)
 - [Phase 1 — Dual Mac Mini Zeek Lab](docs/phase-1-zeek-lab.md)
 - [Phase 2 — Centralized Log Aggregation Pipeline](docs/phase-2-log-pipeline.md)
-- [Phase 3 — Detection Engineering & Dashboards (In Progress)](docs/phase-3-detection-engineering.md)
+- [Phase 3 — Detection Engineering & Dashboards](docs/phase-3-detection-engineering.md)
 
 ## Why I Built This
 
