@@ -1,6 +1,4 @@
-# phase-1-zeek-lab
-
-## Dual Mac Mini Zeek Lab
+# Dual Mac Mini Zeek Lab
 
 **Goal:** Get hands-on experience with network traffic analysis using real hardware.
 
