@@ -1,4 +1,4 @@
-## Phase 3 — Detection Engineering & Dashboards 
+# Phase 3 — Detection Engineering & Dashboards 
 
 #### **Status: Complete (Dashboards & Config Management) | Ongoing (Baseline Establishment)**
 ---
